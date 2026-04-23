@@ -1,11 +1,15 @@
 // =======================
-// Supabase klient
+// PostgreSQL klient (Neon)
 // =======================
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import pg from "https://esm.sh/pg@8.11.3";
 
-const supabaseUrl = "https://sdjzimzdvlcxdnhgvmqq.supabase.co";
-const supabaseKey = "sb_publishable_-ruDf1T5uX8Gknhjkg6scg_yxG4hvAo"; // public key
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const { Pool } = pg;
+
+// ⚠️ dej do .env v reálném projektu
+const pool = new Pool({
+  connectionString: import.meta.env.VITE_DATABASE_URL, // nebo process.env v Node
+  ssl: { rejectUnauthorized: false },
+});
 
 // =======================
 // Funkce API
@@ -13,23 +17,44 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // načtení všech pojištěnců
 export async function getPojistenci() {
-  const { data, error } = await supabase
-    .from("pojistenci")
-    .select("id,jmeno, prijmeni, email, telefon, ulice, mesto, psc");
+  const result = await pool.query(`
+    SELECT id, jmeno, prijmeni, email, telefon, ulice, mesto, psc
+    FROM pojistenci
+  `);
 
-  if (error) throw error;
-  return data;
+  return result.rows;
 }
 
 // přidání nového pojištěnce
 export async function addPojistenec(pojistenec) {
-  const { error } = await supabase
-    .from("pojistenci")
-    .insert([pojistenec]); // musí přesně odpovídat názvům sloupců v DB
+  const {
+    jmeno,
+    prijmeni,
+    email,
+    telefon,
+    ulice,
+    mesto,
+    psc,
+  } = pojistenec;
 
-  if (error) throw error;
+  await pool.query(
+    `
+    INSERT INTO pojistenci (jmeno, prijmeni, email, telefon, ulice, mesto, psc)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `,
+    [jmeno, prijmeni, email, telefon, ulice, mesto, psc]
+  );
 }
+
+// přidání pojištění
 export async function addPojisteni(pojisteni) {
-  const { error } = await supabase.from("pojisteni").insert([pojisteni]);
-  if (error) throw error;
+  const { typ, castka, pojistenec_id } = pojisteni;
+
+  await pool.query(
+    `
+    INSERT INTO pojisteni (typ, castka, pojistenec_id)
+    VALUES ($1, $2, $3)
+    `,
+    [typ, castka, pojistenec_id]
+  );
 }
