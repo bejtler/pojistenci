@@ -1,6 +1,9 @@
 // =======================
 // PostgreSQL klient (Neon)
 // =======================
+
+const API_URL = "https://pojistenci-ghet.onrender.com";
+
 import pg from "https://esm.sh/pg@8.11.3";
 
 const { Pool } = pg;
