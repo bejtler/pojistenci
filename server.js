@@ -34,6 +34,22 @@ app.get("/pojistenci", async (req, res) => {
   }
 });
 
+app.post("/pojistenci", async (req, res) => {
+  try {
+    const { jmeno, prijmeni, email } = req.body;
+
+    const result = await pool.query(
+      "INSERT INTO pojistenci (jmeno, prijmeni, email) VALUES ($1, $2, $3) RETURNING *",
+      [jmeno, prijmeni, email]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
