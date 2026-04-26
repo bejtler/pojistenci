@@ -3,25 +3,38 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pg from "pg";
 
+// 🔧 NOVÉ – pro práci s cestami (ES modules)
+import path from "path";
+import { fileURLToPath } from "url";
+
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-
 const { Pool } = pg;
 
+// 🔧 NOVÉ – __dirname workaround pro ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 🔌 DB připojení
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 
-// test endpoint
+// middleware
+app.use(cors());
+app.use(express.json());
+
+// 🔧 NOVÉ – statické soubory (frontend)
+app.use(express.static(path.join(__dirname, "public")));
+
+// 🔧 NOVÉ – hlavní stránka (index.html)
 app.get("/", (req, res) => {
-  res.send("API běží");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// 🔥 TADY je endpoint (máš ho správně umístěný)
+// API endpoint – pojištěnci
 app.get("/pojistenci", async (req, res) => {
   try {
     const result = await pool.query(
@@ -29,24 +42,8 @@ app.get("/pojistenci", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error("DB ERROR:", err);
-    res.status(500).send(err.message); // 👈 TOTO
-  }
-});
-
-app.post("/pojistenci", async (req, res) => {
-  try {
-    const { jmeno, prijmeni, email } = req.body;
-
-    const result = await pool.query(
-      "INSERT INTO pojistenci (jmeno, prijmeni, email) VALUES ($1, $2, $3) RETURNING *",
-      [jmeno, prijmeni, email]
-    );
-
-    res.json(result.rows[0]);
-  } catch (err) {
     console.error(err);
-    res.status(500).send(err.message);
+    res.status(500).send("Chyba databáze");
   }
 });
 
