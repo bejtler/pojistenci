@@ -6,12 +6,6 @@ import pg from "pg";
 dotenv.config();
 
 const app = express();
-const { Pool } = pg;
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
 app.use(cors());
 app.use(express.json());
 
@@ -27,6 +21,7 @@ app.get("/", (req, res) => {
   res.send("API běží");
 });
 
+// 🔥 TADY je endpoint (máš ho správně umístěný)
 app.get("/pojistenci", async (req, res) => {
   try {
     const result = await pool.query(
