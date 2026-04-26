@@ -22,7 +22,11 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// endpoint pojistenci
+// test endpoint
+app.get("/", (req, res) => {
+  res.send("API běží");
+});
+
 app.get("/pojistenci", async (req, res) => {
   try {
     const result = await pool.query(
