@@ -29,8 +29,8 @@ app.get("/pojistenci", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Chyba databáze");
+    console.error("DB ERROR:", err);
+    res.status(500).send(err.message); // 👈 TOTO
   }
 });
 
