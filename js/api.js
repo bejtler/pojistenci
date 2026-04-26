@@ -1,63 +1,33 @@
-// =======================
-// PostgreSQL klient (Neon)
-// =======================
-
 const API_URL = "https://pojistenci-ghet.onrender.com";
 
-import pg from "https://esm.sh/pg@8.11.3";
-
-const { Pool } = pg;
-
-// ⚠️ dej do .env v reálném projektu
-const pool = new Pool({
-  connectionString: import.meta.env.VITE_DATABASE_URL, // nebo process.env v Node
-  ssl: { rejectUnauthorized: false },
-});
-
 // =======================
-// Funkce API
+// Pojištěnci
 // =======================
 
-// načtení všech pojištěnců
+// GET všichni
 export async function getPojistenci() {
-  const result = await pool.query(`
-    SELECT id, jmeno, prijmeni, email, telefon, ulice, mesto, psc
-    FROM pojistenci
-  `);
+  const res = await fetch(`${API_URL}/pojistenci`);
 
-  return result.rows;
+  if (!res.ok) {
+    throw new Error("Chyba při načítání pojištěnců");
+  }
+
+  return await res.json();
 }
 
-// přidání nového pojištěnce
+// POST nový
 export async function addPojistenec(pojistenec) {
-  const {
-    jmeno,
-    prijmeni,
-    email,
-    telefon,
-    ulice,
-    mesto,
-    psc,
-  } = pojistenec;
+  const res = await fetch(`${API_URL}/pojistenci`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(pojistenec),
+  });
 
-  await pool.query(
-    `
-    INSERT INTO pojistenci (jmeno, prijmeni, email, telefon, ulice, mesto, psc)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `,
-    [jmeno, prijmeni, email, telefon, ulice, mesto, psc]
-  );
-}
+  if (!res.ok) {
+    throw new Error("Chyba při ukládání pojištěnce");
+  }
 
-// přidání pojištění
-export async function addPojisteni(pojisteni) {
-  const { typ, castka, pojistenec_id } = pojisteni;
-
-  await pool.query(
-    `
-    INSERT INTO pojisteni (typ, castka, pojistenec_id)
-    VALUES ($1, $2, $3)
-    `,
-    [typ, castka, pojistenec_id]
-  );
+  return await res.json();
 }
